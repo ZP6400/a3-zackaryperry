@@ -5,7 +5,10 @@ const http = require( 'http' ),
       port = 3000
 
 let nextId = 3
-const appdata = []
+const appdata = [
+
+  { id: 1, username: 'ZackPerry', score: 910, duration: 75, pps: '12.13', rankTier: 'S Rank' }
+]
 
 
 function computeDerived( data ) {
