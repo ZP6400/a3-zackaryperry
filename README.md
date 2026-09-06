@@ -1,7 +1,6 @@
-Sample Readme (delete the above when you're ready to submit, and modify the below so with your links and descriptions)
----
+Zackary Perry
+https://a2-zackaryperry.onrender.com/
 
-## Your Web Application Title
 This project contains a small game titled Black Hole Boogie, in which the user needs to press one of four keys as fast as they can before a ball gets sucked up by the black holes surrounding it. The ball will slide in the direction of the black hole with the key that needs to be pressedl upon achieving this, it will be attracted towards a different hole instead. The ball speeds up as the game progresses, and eventually ends after 1-2 minutes of gameplay. Following this, the player is suggested to submit a username alongside their score, which consists of the amount of time they survived and the score they acquired. This fields are used to derive the amount of points per second (pps) the player racked up, as well as the respective ranking that this gets them (from C Rank to S Rank).
 
 A combination of both CSS Grid and Flexbox was used in the styling/positioning of this project. CSS Grid was used to establish the side-by-side card arrangement for when the site is accessed on desktop, with the leaderboard spanning below across both columns (a fallback was also implemented for mobile screens, where a single-column stack is implemented instead). Flexbox was then used to manage more minor details, such as aligning HUD text, centering the key indicators within the black holes, stacking the form inputs properly, etc. Finally, absolute positioning was also used to place the ball and black holes in an organized way within the game space.
