@@ -126,16 +126,23 @@ window.addEventListener('DOMContentLoaded', () => {
   const cancelBtn = document.querySelector('#cancel-btn')
   const scoresBody = document.querySelector('#scores-body')
 
-
-  loadData()
+  
 
   async function loadData() {
 
     try {
 
       const response = await fetch('/data')
+      if (!response.ok) {
+
+        return
+      }
+
       const data = await response.json()
-      renderTable(data)
+      if (Array.isArray(data)) {
+
+        renderTable(data)
+      }
     } 
     catch (err) {
 
@@ -144,6 +151,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderTable(data) {
+
+    if (!Array.isArray(data)) {
+
+      return
+    }
 
     scoresBody.innerHTML = ''
     data.forEach(item => {
