@@ -6,10 +6,104 @@ let isPlaying = false
 let activeHole = 0
 let assignedKeys = ['', '', '', '']
 const keyPool = ['A', 'S', 'D', 'F', 'J', 'K', 'L', 'W', 'E', 'I', 'O']
-const startSpeed = 10000
 
 
 window.addEventListener('DOMContentLoaded', () => {
+
+  const loggedOutView = document.querySelector('#logged-out-view')
+  const loggedInView = document.querySelector('#logged-in-view')
+  const mainContent = document.querySelector('#main-content')
+  const currentUserDisplay = document.querySelector('#current-user-display')
+  const logoutBtn = document.querySelector('#logout-btn')
+
+  const loginForm = document.getElementById('login-form')
+  const loginUsernameInput = document.getElementById('login-username')
+  const loginPasswordInput = document.getElementById('login-password')
+
+  if (loginForm) {
+
+    loginForm.onsubmit = async (e) => {
+
+      e.preventDefault()
+      const username = loginUsernameInput.value.trim()
+      const password = loginPasswordInput.value
+
+      try {
+
+        const res = await fetch('/api/login', {
+
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        })
+
+        if (res.ok) {
+
+          loginUsernameInput.value = ''
+          loginPasswordInput.value = ''
+          await checkAuth()
+        } 
+        else {
+
+          const err = await res.json()
+          alert(err.error || 'Login failed')
+        }
+      } 
+      catch (err) {
+
+        console.error('Login error:', err)
+        alert('Network error connecting to login service')
+      }
+    }
+  }
+
+  checkAuth()
+  async function checkAuth() {
+
+    try {
+
+      const res = await fetch('/api/user')
+      const user = await res.json()
+      if (user.username) {
+
+        setLoggedInUI(user.username)
+        loadData()
+      } 
+      else {
+
+        setLoggedOutUI()
+      }
+    } 
+    catch (err) {
+
+      console.error('Auth check failed:', err)
+    }
+  }
+
+  function setLoggedInUI(username) {
+
+    loggedOutView.style.display = 'none'
+    loggedInView.style.display = 'block'
+    mainContent.style.display = 'block'
+    currentUserDisplay.textContent = username
+  }
+
+  function setLoggedOutUI() {
+
+    loggedOutView.style.display = 'block'
+    loggedInView.style.display = 'none'
+    mainContent.style.display = 'none'
+    currentUserDisplay.textContent = ''
+    scoresBody.innerHTML = ''
+  }
+
+  logoutBtn.onclick = async () => {
+
+    await fetch('/api/logout', { method: 'POST' })
+    setLoggedOutUI()
+  }
+
+
 
   const hudScore = document.querySelector('#hud-score')
   const hudTimer = document.querySelector('#hud-timer')
@@ -25,9 +119,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const scoreForm = document.querySelector('#score-form')
   const entryId = document.querySelector('#entry-id')
-  const usernameInput = document.querySelector('#username')
   const scoreInput = document.querySelector('#score')
   const durationInput = document.querySelector('#duration')
+  const notesInput = document.querySelector('#notes')
   const submitBtn = document.querySelector('#submit-btn')
   const cancelBtn = document.querySelector('#cancel-btn')
   const scoresBody = document.querySelector('#scores-body')
@@ -54,16 +148,19 @@ window.addEventListener('DOMContentLoaded', () => {
     scoresBody.innerHTML = ''
     data.forEach(item => {
 
+      const safeNotes = escapeHtml(item.notes || '').replace(/'/g, "\\'")
       const tr = document.createElement('tr')
       tr.innerHTML = `
         <td>${escapeHtml(item.username)}</td>
         <td>${item.score}</td>
         <td>${item.duration}</td>
         <td>${item.pps}</td>
-        <td><strong>${item.rankTier}</strong></td>
-        <td>
-          <button class="btn btn-action btn-secondary" onclick="startEdit(${item.id}, '${escapeHtml(item.username)}', ${item.score}, ${item.duration})">Edit</button>
-          <button class="btn btn-action btn-danger" onclick="deleteEntry(${item.id})">Delete</button>
+        <td><span class="badge bg-secondary">${escapeHtml(item.difficulty || 'Normal')}</span></td>
+        <td><span class="badge bg-primary">${item.rankTier}</span></td>
+        <td>${escapeHtml(item.notes || '—')}</td>
+        <td style="white-space: nowrap;">
+          <button class="btn btn-sm btn-info me-1" onclick="startEdit('${item._id}', ${item.score}, ${item.duration}, '${item.difficulty || 'Normal'}', '${safeNotes}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteEntry('${item._id}')">Delete</button>
         </td>
       `
       scoresBody.appendChild(tr)
@@ -87,17 +184,21 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const id = entryId.value
     const endpoint = id ? '/edit' : '/submit'
+    const selectedDiff = document.querySelector('input[name="difficulty"]:checked')?.value || 'Normal'
+
     const payload = {
 
       id: id || undefined,
-      username: usernameInput.value,
       score: scoreInput.value,
-      duration: durationInput.value
+      duration: durationInput.value,
+      difficulty: selectedDiff,
+      notes: notesInput.value
     }
 
     const response = await fetch(endpoint, {
 
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
 
@@ -112,18 +213,23 @@ window.addEventListener('DOMContentLoaded', () => {
     const response = await fetch('/delete', {
 
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: id })
     })
     const updatedData = await response.json()
     renderTable(updatedData)
   }
 
-  window.startEdit = function(id, user, s, d) {
+  window.startEdit = function(id, scoreVal, durationVal, difficultyVal, noteText) {
 
     entryId.value = id
-    usernameInput.value = user
-    scoreInput.value = s
-    durationInput.value = d
+    scoreInput.value = scoreVal
+    durationInput.value = durationVal
+    notesInput.value = (typeof noteText === 'string') ? noteText : ''
+
+    const radio = document.querySelector(`input[name="difficulty"][value="${difficultyVal}"]`)
+    if (radio) radio.checked = true
+
     submitBtn.textContent = 'Update Entry'
     cancelBtn.style.display = 'inline-block'
     scoreForm.scrollIntoView({ behavior: 'smooth' })
@@ -138,12 +244,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     entryId.value = ''
     scoreForm.reset()
+    notesInput.value = ''
     submitBtn.textContent = 'Submit Score'
     cancelBtn.style.display = 'none'
   }
 
 
-  
+
   startBtn.onclick = function() {
 
     score = 0
@@ -152,6 +259,7 @@ window.addEventListener('DOMContentLoaded', () => {
     hudScore.textContent = score
     hudTimer.textContent = duration
     startBtn.disabled = true
+    document.querySelectorAll('input[name="difficulty"]').forEach(r => r.disabled = true)
 
     timerInterval = setInterval(() => {
 
@@ -170,16 +278,17 @@ window.addEventListener('DOMContentLoaded', () => {
     clearTimeout(roundTimer)
 
     startBtn.disabled = false
+    document.querySelectorAll('input[name="difficulty"]').forEach(r => r.disabled = false)
     
     ball.style.transition = 'none'
     ball.style.top = '115px'
     ball.style.left = '50%'
-    holes.forEach( h => h.classList.remove( 'targeted' ) )
+    holes.forEach(h => h.classList.remove('targeted'))
 
     scoreInput.value = score
     durationInput.value = Math.max(duration, 1)
-    alert( `Game Over! The ball fell into the hole. Final Score: ${score}` )
-    usernameInput.focus()
+    alert(`Game Over! The ball fell into the hole. Final Score: ${score}`)
+    scoreForm.scrollIntoView({ behavior: 'smooth' })
   }
 
   function shuffleHoleKeys() {
@@ -205,19 +314,23 @@ window.addEventListener('DOMContentLoaded', () => {
     activeHole = pick
     holes.forEach((h, i) => h.classList.toggle('targeted', i === activeHole))
 
-    const travelDurationMs = startSpeed - ( score * 10 )
+    const isDaredevil = document.querySelector('input[name="difficulty"]:checked')?.value === 'Daredevil'
+
+    const startSpeed = isDaredevil ? 5000 : 10000
+    const speedMultiplier = isDaredevil ? 25 : 10
+    const travelDurationMs = Math.max(startSpeed - (score * speedMultiplier), 400)
 
     ball.style.transition = `top ${travelDurationMs / 1000}s linear, left ${travelDurationMs / 1000}s linear`
 
-    const target = holes[ activeHole ]
+    const target = holes[activeHole]
     ball.style.top = `${target.offsetTop + 22}px`
     ball.style.left = `${target.offsetLeft + 22}px`
 
-    clearTimeout( roundTimer )
-    roundTimer = setTimeout( () => {
+    clearTimeout(roundTimer)
+    roundTimer = setTimeout(() => {
 
       endGame()
-    }, travelDurationMs )
+    }, travelDurationMs)
   }
 
   window.onkeydown = function(event) {

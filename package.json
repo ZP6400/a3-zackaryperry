@@ -1,15 +1,27 @@
 {
-  "name": "",
-  "version": "",
-  "description": "",
-  "author": "",
+  "name": "a3-zackaryperry",
+  "version": "1.0.0",
+  "description": "Black Hole Boogie: A fast-paced reflex arcade survival game. Press the key of the black hole the ball is moving towards before it gets fully sucked up!",
+  "author": "Zackary Perry",
+  "type": "module",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "mime": "^2.4.4"
+    "compression": "^1.8.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "mime": "^2.4.4",
+    "mongodb": "^7.6.0",
+    "morgan": "^1.12.1",
+    "passport": "^0.7.0",
+    "passport-github2": "^0.1.12"
   },
   "engines": {
-     "node":"24.x"
+    "node": "24.x"
   }
 }

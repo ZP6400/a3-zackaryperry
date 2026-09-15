@@ -1,85 +1,149 @@
 <!doctype html>
-<html lang='en'>
+<html lang="en" data-bs-theme="dark">
   <head>
-    <title>Black Hole Boogie - CS4241 A2</title>
+    <title>Black Hole Boogie - CS4241 A3</title>
     <meta charset='utf-8' />
-    <meta name="viewport" content="width=device-width, initial-scale=0.6"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Black Hole Boogie: A fast-paced reflex arcade survival game. Press the key of the black hole the ball is moving towards before it gets fully sucked up!">
 
-    <link rel='stylesheet' href='css/main.css'/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel='icon' href='data:;base64,iVBORw0KGgo='/>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel='stylesheet' href='css/main.css'/>
   </head>
-  <body>
-    <header>
-      <h1 id="title">Black Hole Boogie</h1>
-      <p class="subtitle">Press the key of the black hole the ball is moving towards before it gets fully sucked up!</p>
+  <body class="py-4">
+    <header class="text-center mb-4 container">
+      <h1 id="title" class="display-5 fw-bold text-info">Black Hole Boogie</h1>
+      <p class="subtitle text-light-emphasis">Press the key of the black hole the ball is moving towards before it gets fully sucked up!</p>
+
+      <div id="auth-bar" class="card mx-auto shadow-sm" style="max-width: 540px;">
+        <div class="card-body">
+          <div id="logged-out-view">
+            <h5 class="card-title text-center">Sign In to Play</h5>
+            <p class="card-text text-light-emphasis small text-center">Accounts are created automatically if they don't already exist</p>
+            
+            <form id="login-form" class="d-flex flex-column gap-2 mb-3">
+              <div class="d-flex gap-2">
+                <input type="text" id="login-username" class="form-control" placeholder="Username" aria-label="Username" required>
+                <input type="password" id="login-password" class="form-control" placeholder="Password" aria-label="Password" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Sign In with Credentials</button>
+            </form>
+
+            <div class="d-flex align-items-center my-2">
+              <hr class="flex-grow-1 border-secondary">
+              <span class="px-2 text-light-emphasis small fw-bold">OR</span>
+              <hr class="flex-grow-1 border-secondary">
+            </div>
+
+            <a href="/auth/github" class="btn btn-dark border border-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+              </svg>
+              <span>Sign In with GitHub</span>
+            </a>
+          </div>
+
+          <div id="logged-in-view" style="display: none;" class="text-center">
+            <span>Signed in as: <strong id="current-user-display" class="text-info"></strong></span>
+            <button id="logout-btn" class="btn btn-sm btn-danger ms-3">Sign Out</button>
+          </div>
+        </div>
+      </div>
     </header>
     
-    <main class="layout">
-      <section class="card game-card">
-        <div class="hud">
-          <h4>Score: <strong id="hud-score">0</strong></h4>
-          <h4>Survival Time: <strong id="hud-timer">0</strong>s</h4>
+    <main class="container" id="main-content" style="display: none;">
+      <div class="row g-4 justify-content-center">
+        <div class="col-lg-6">
+          <section class="card shadow-sm h-100">
+            <div class="card-body d-flex flex-column">
+              <div class="hud d-flex justify-content-between mb-3 fs-5">
+                <span>Score: <strong id="hud-score" class="text-info">0</strong></span>
+                <span>Survival Time: <strong id="hud-timer" class="text-info">0</strong>s</span>
+              </div>
+
+              <div id="game-space">
+                <div class="hole" id="hole-0"><span class="hole-key"></span></div>
+                <div class="hole" id="hole-1"><span class="hole-key"></span></div>
+                <div class="hole" id="hole-2"><span class="hole-key"></span></div>
+                <div class="hole" id="hole-3"><span class="hole-key"></span></div>
+                <div id="ball"></div>
+              </div>
+
+              <button id="start-btn" class="btn btn-info w-100 fw-bold mt-auto py-2">Start Game</button>
+            </div>
+          </section>
         </div>
 
-        <div id="game-space">
-          <div class="hole" id="hole-0"><span class="hole-key"></span></div>
-          <div class="hole" id="hole-1"><span class="hole-key"></span></div>
-          <div class="hole" id="hole-2"><span class="hole-key"></span></div>
-          <div class="hole" id="hole-3"><span class="hole-key"></span></div>
-          <div id="ball"></div>
+        <div class="col-lg-6">
+          <section class="card shadow-sm h-100">
+            <div class="card-body">
+              <h2 id="form-heading" class="card-title h4 mb-3">Record Your Score</h4>
+              <form id="score-form">
+                <input type="hidden" id="entry-id" value="">
+
+                <div class="mb-3">
+                  <label class="form-label d-block text-light-emphasis">Difficulty:</label>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="difficulty" id="diff-normal" value="Normal" checked>
+                    <label class="form-check-label" for="diff-normal">Normal</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="difficulty" id="diff-hard" value="Daredevil">
+                    <label class="form-check-label" for="diff-hard">Daredevil</label>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="score" class="form-label text-light-emphasis">Score:</label>
+                  <input type="number" id="score" class="form-control" required min="0" value="0">
+                </div>
+
+                <div class="mb-3">
+                  <label for="duration" class="form-label text-light-emphasis">Survival Time (Seconds):</label>
+                  <input type="number" id="duration" class="form-control" required min="1" value="1">
+                </div>
+
+                <div class="mb-3">
+                  <label for="notes" class="form-label text-light-emphasis">Notes:</label>
+                  <textarea id="notes" class="form-control" rows="2" placeholder="Describe this run..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                  <button type="submit" id="submit-btn" class="btn btn-success flex-grow-1">Submit Score</button>
+                  <button type="button" id="cancel-btn" class="btn btn-secondary" style="display: none;">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </section>
         </div>
 
-        <button id="start-btn" class="btn btn-start">Start Game</button>
-      </section>
-
-      <section class="card form-card">
-        <h2 id="form-heading">Record Your Score</h2>
-        <form id="score-form">
-          <input type="hidden" id="entry-id" value="">
-          
-          <div class="form-space">
-            <label for="username">Username:</label>
-            <input type="text" id="username" required maxlength="16">
-          </div>
-
-          <div class="form-space">
-            <label for="score">Score:</label>
-            <input type="number" id="score" required min="0" value="0">
-          </div>
-
-          <div class="form-space">
-            <label for="duration">Survival Time (Seconds):</label>
-            <input type="number" id="duration" required min="1" value="1">
-          </div>
-
-          <div class="form-submission">
-            <button type="submit" id="submit-btn" class="btn btn-submit">Submit Score</button>
-            <button type="button" id="cancel-btn" class="btn btn-secondary" style="display: none;">Cancel</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="card table-card">
-        <h2>Server Dataset</h2>
-        <div class="table-space">
-          <table>
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Score</th>
-                <th>Survival Time (S)</th>
-                <th>Points per Second</th>
-                <th>Ranking</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="scores-body">
-            </tbody>
-          </table>
+        <div class="col-12">
+          <section class="card shadow-sm">
+            <div class="card-body">
+              <h2 class="card-title h4 mb-3">Your Records</h4>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-secondary">
+                    <tr>
+                      <th scope="col">Username</th>
+                      <th scope="col">Score</th>
+                      <th scope="col">Survival Time (S)</th>
+                      <th scope="col">Points per Second</th>
+                      <th scope="col">Difficulty</th>
+                      <th scope="col">Ranking</th>
+                      <th scope="col">Notes</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scores-body">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
     </main>
 
     <script src='js/main.js' defer></script>
